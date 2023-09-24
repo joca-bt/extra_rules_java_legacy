@@ -2,6 +2,7 @@
 
 Rules:
 
+- [executable_jar](docs/executable_jar.md)
 - [javadoc](docs/javadoc.md)
 
 ## Usage
