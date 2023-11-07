@@ -4,6 +4,7 @@ Rules:
 
 - [executable_jar](docs/executable_jar.md)
 - [javadoc](docs/javadoc.md)
+- [junit_tests](docs/junit_tests.md) (macro)
 
 ## Usage
 
