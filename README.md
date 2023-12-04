@@ -15,6 +15,6 @@ http_archive(
     name = "extra_rules_java",
     sha256 = <sha>,
     strip_prefix = "extra_rules_java-{}".format(<tag>),
-    url = "https://github.com/joca-bt/extra_rules_java/archive/{}.tar.gz".format(<tag>),
+    url = "https://github.com/joca-bt/extra_rules_java/releases/download/{0}/extra_rules_java-{0}.tar.gz".format(<tag>),
 )
 ```
