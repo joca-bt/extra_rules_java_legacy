@@ -6,3 +6,4 @@ build --javacopt=-Xlint:-processing
 build --javacopt=-Werror
 
 build --symlink_prefix=.bazel/
+build --lockfile_mode=off
