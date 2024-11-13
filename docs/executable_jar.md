@@ -1,15 +1,15 @@
-# executable_jar
+## executable_jar
 
-```bazel
-executable_jar(name, libs, main_class)
+```Starlark
+executable_jar(name, main_class, libs)
 ```
 
-Generates an executable jar for a set of [libraries](https://bazel.build/reference/be/java#java_library).
+Builds an [executable jar](/tools/jar-loader/README.md) from a set of [libraries](https://bazel.build/reference/be/java#java_library).
 
-**Arguments**
+### Attributes
 
 | Name       | Type           | Mandatory |
 | ---        | ---            | ---       |
 | name       | Name           | Yes       |
-| libs       | List of labels | Yes       |
 | main_class | String         | Yes       |
+| libs       | List of labels | Yes       |
