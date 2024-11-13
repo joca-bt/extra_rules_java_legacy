@@ -1,27 +1,24 @@
 package extrarulesjava.jarloader;
 
-import extrarulesjava.jarloader.archive.Archive.Entry;
+import extrarulesjava.jarloader.launch.Archive.Entry;
+import extrarulesjava.jarloader.launch.ExecutableArchiveLauncher;
 
 public class JarLoader extends ExecutableArchiveLauncher {
-    private static final String APP_DIR = "app/";
-    private static final String LIB_DIR = "lib/";
+    public JarLoader() throws Exception {}
 
     @Override
-    protected boolean isNestedArchive(Entry entry) {
-        if (entry.isDirectory()) {
-            return entry.getName().equals(APP_DIR);
-        }
-
-        return entry.getName().startsWith(LIB_DIR);
+    protected String getEntryPathPrefix() {
+        return "jars/";
     }
 
     @Override
-    protected boolean isPostProcessingClassPathArchives() {
-        return false;
+    protected boolean isIncludedOnClassPath(Entry entry) {
+        String name = entry.name();
+        return name.startsWith("jars/");
     }
 
-    public static void main(String[] args) throws Exception {
-        JarLoader loader = new JarLoader();
-        loader.launch(args);
+	public static void main(String[] args) throws Exception {
+        JarLoader jarLoader = new JarLoader();
+        jarLoader.launch(args);
     }
 }
