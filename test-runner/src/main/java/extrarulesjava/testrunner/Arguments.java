@@ -5,17 +5,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 class Arguments {
-    private static final String TESTBRIDGE_TEST_ONLY = "TESTBRIDGE_TEST_ONLY";
-    private static final String XML_OUTPUT_FILE = "XML_OUTPUT_FILE";
-
     public static String[] process(String[] args) {
         List<String> arguments = new ArrayList<>();
+
+        arguments.add("execute");
 
         addDetails(arguments);
         addDisableBanner(arguments);
         addFailIfNoTests(arguments);
         addReportsDir(arguments);
-        addSelector(arguments, args[0]);
+        addSelectors(arguments, args[0]);
 
         return arguments.toArray(new String[arguments.size()]);
     }
@@ -33,42 +32,48 @@ class Arguments {
     }
 
     private static void addReportsDir(List<String> arguments) {
-        Path file = Path.of(System.getenv(XML_OUTPUT_FILE));
-        arguments.add("--reports-dir=" + file.getParent());
+        Path dir = Path.of(System.getenv("XML_OUTPUT_FILE")).getParent();
+        arguments.add("--reports-dir=%s".formatted(dir));
     }
 
-    /*
-     * Bazel's --test_filter option specifies which tests to run. This option is provided to the
-     * test runner through the environment variable TESTBRIDGE_TEST_ONLY.
+    /**
+     * Adds selectors based on the filter expression when the --test_filter option is provided.
      *
-     * Add a selector based on the filter expression when --test_filter is provided. Supported
-     * filter expressions:
-     *   - package,
-     *   - package.class,
-     *   - package.class#method.
+     * The --test_filter option specifies which tests to run. This option is provided to the test
+     * runner through the TESTBRIDGE_TEST_ONLY environment variable.
+     *
+     * Limitations:
+     *   - Does not support parameterized tests.
+     *   - Does not support nested tests.
+     *   - Assumes that the filter expression is valid.
      */
-    private static void addSelector(List<String> arguments, String jar) {
-        String filterExpression = System.getenv(TESTBRIDGE_TEST_ONLY);
+    private static void addSelectors(List<String> arguments, String jar) {
+        String filterExpression = System.getenv("TESTBRIDGE_TEST_ONLY");
 
-        if (filterExpression != null) {
-            if (filterExpression.contains("#")) {
-                arguments.add("--select-method=" + filterExpression);
-            } else if (isClass(filterExpression)) {
-                arguments.add("--select-class=" + filterExpression);
-            } else {
-                arguments.add("--select-package=" + filterExpression);
+        if (filterExpression == null) {
+            arguments.add("--scan-classpath=%s".formatted(jar));
+            return;
+        }
+
+        filterExpression = adjustForIntellijIdea(filterExpression);
+
+        for (var component : filterExpression.split("\\|(?![^()]+\\))")) {
+            String[] names = component.split("#");
+
+            String clazz = names[0];
+
+            if (names.length == 1) {
+                arguments.add("--select-class=%s".formatted(clazz));
+                continue;
             }
-        } else {
-            arguments.add("--scan-classpath=" + jar);
+
+            for (var method : names[1].replaceAll("^\\(|\\)$", "").split("\\|")) {
+                arguments.add("--select-method=%s#%s".formatted(clazz, method));
+            }
         }
     }
 
-    private static boolean isClass(String name) {
-        try {
-            Class.forName(name);
-            return true;
-        } catch (Exception exception) {
-            return false;
-        }
+    private static String adjustForIntellijIdea(String filterExpression) {
+        return filterExpression.replaceAll("[#$](\\||$)", "$1");
     }
 }

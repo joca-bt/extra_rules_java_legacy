@@ -3,6 +3,7 @@ package extrarulesjava.testrunner;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -17,23 +18,22 @@ import org.w3c.dom.NodeList;
 import static javax.xml.transform.OutputKeys.INDENT;
 
 class Reports {
-    private static final String XML_OUTPUT_FILE = "XML_OUTPUT_FILE";
-
     public static void process() {
         try {
-            Path file = Path.of(System.getenv(XML_OUTPUT_FILE));
+            Path file = Path.of(System.getenv("XML_OUTPUT_FILE"));
             Document document = parseAndMergeReports(file.getParent());
-            writeReport(file, document);
+            writeReport(document, file);
         } catch (Exception exception) {
-            String message = "Error processing reports.";
+            String message = "Could not process reports.";
             throw new JUnitException(message, exception);
         }
     }
 
-    /*
-     * Add the display name to the name, but only when it starts with [, otherwise IntelliJ IDEA's
-     * navigation will break. Remove parentheses and everything after from the name for the same
-     * reason.
+    /**
+     * Fixes the name of a testcase:
+     *   - Appends the display name for parameterized tests.
+     *   - Removes parentheses, as IntelliJ IDEA's navigation will break if the name contains
+     *     parentheses.
      */
     private static void fixTestcaseName(Element testcase) {
         String name = testcase.getAttribute("name");
@@ -41,7 +41,8 @@ class Reports {
 
         name = name.substring(0, name.indexOf('('));
 
-        if (!displayName.equals(name) && displayName.startsWith("[")) {
+        // Parameterized test?
+        if (displayName.startsWith("[")) {
             name = "%s %s".formatted(name, displayName);
         }
 
@@ -56,7 +57,7 @@ class Reports {
      */
     private static String getTestcaseDisplayName(Element testcase) {
         Element systemOut = (Element) testcase.getElementsByTagName("system-out").item(0);
-        String[] properties = systemOut.getFirstChild().getNodeValue().trim().split("\n", -1);
+        String[] properties = systemOut.getFirstChild().getNodeValue().trim().split("\n");
         return properties[1].substring(14);
     }
 
@@ -69,13 +70,14 @@ class Reports {
         }
 
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        Document document = factory.newDocumentBuilder().newDocument();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.newDocument();
         Element root = document.createElement("testsuites");
 
         document.appendChild(root);
 
         for (var file : files) {
-            Document subdocument = factory.newDocumentBuilder().parse(file.toFile());
+            Document subdocument = builder.parse(file.toFile());
             NodeList testsuites = subdocument.getElementsByTagName("testsuite");
 
             for (int i = 0, sizei = testsuites.getLength(); i < sizei; i++) {
@@ -94,7 +96,7 @@ class Reports {
         return document;
     }
 
-    private static void writeReport(Path file, Document document) throws Exception {
+    private static void writeReport(Document document, Path file) throws Exception {
         TransformerFactory factory = TransformerFactory.newInstance();
         Transformer transformer = factory.newTransformer();
         DOMSource source = new DOMSource(document);

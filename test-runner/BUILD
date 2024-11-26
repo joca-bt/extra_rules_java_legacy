@@ -1,7 +1,7 @@
 java_import(
     name = "junit5",
     jars = [
-        "jars/junit-platform-console-standalone-1.10.0.jar",
+        "jars/junit-platform-console-standalone-1.11.3.jar",
     ],
     visibility = ["//visibility:public"],
 )

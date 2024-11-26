@@ -13,9 +13,7 @@ public class TestRunner {
         PrintWriter err = new PrintWriter(System.err, true, UTF_8);
 
         args = Arguments.process(args);
-
         CommandResult<?> result = ConsoleLauncher.run(out, err, args);
-
         Reports.process();
 
         System.exit(result.getExitCode());
