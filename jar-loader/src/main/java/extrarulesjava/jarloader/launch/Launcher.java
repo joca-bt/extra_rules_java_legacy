@@ -39,7 +39,7 @@ import extrarulesjava.jarloader.net.protocol.Handlers;
  */
 public abstract class Launcher {
 
-	private static final String JAR_MODE_RUNNER_CLASS_NAME = "JarModeRunner.class.getName()";
+	private static final String JAR_MODE_RUNNER_CLASS_NAME = "";
 
 	protected static final String BOOT_CLASSPATH_INDEX_ATTRIBUTE = "Spring-Boot-Classpath-Index";
 

@@ -35,9 +35,9 @@ import extrarulesjava.jarloader.net.protocol.jar.JarUrlClassLoader;
  */
 public class LaunchedClassLoader extends JarUrlClassLoader {
 
-	private static final String JAR_MODE_PACKAGE_PREFIX = "extrarulesjava.jarloader.jarmode.";
+	private static final String JAR_MODE_PACKAGE_PREFIX = "";
 
-	private static final String JAR_MODE_RUNNER_CLASS_NAME = "JarModeRunner.class.getName()";
+	private static final String JAR_MODE_RUNNER_CLASS_NAME = "";
 
 	static {
 		ClassLoader.registerAsParallelCapable();

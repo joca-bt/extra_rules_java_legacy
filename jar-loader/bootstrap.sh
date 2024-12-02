@@ -17,8 +17,8 @@ rm -rf src/**/{jarmode,nio}/ \
        src/**/{JarLauncher,JarModeRunner,PropertiesLauncher,SystemPropertyUtils,WarLauncher}.java \
        src/**/package-info.java
 
-sed -i -e 's/org.springframework.boot.loader/extrarulesjava.jarloader/g' \
-       -e 's/JarModeRunner.class.getName()/"JarModeRunner.class.getName()"/g' \
-       src/**/*.java
+sed -Ei -e 's|org.springframework.boot.loader|extrarulesjava.jarloader|g' \
+        -e 's|(String JAR_MODE_.+) = .+;|\1 = "";|g' \
+        src/**/*.java
 
 rm spring-boot.tar.gz
