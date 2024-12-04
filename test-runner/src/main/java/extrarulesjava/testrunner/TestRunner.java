@@ -1,6 +1,7 @@
 package extrarulesjava.testrunner;
 
 import java.io.PrintWriter;
+import java.nio.file.Path;
 
 import org.junit.platform.console.ConsoleLauncher;
 import org.junit.platform.console.options.CommandResult;
@@ -12,9 +13,13 @@ public class TestRunner {
         PrintWriter out = new PrintWriter(System.out, true, UTF_8);
         PrintWriter err = new PrintWriter(System.err, true, UTF_8);
 
-        args = Arguments.process(args);
-        CommandResult<?> result = ConsoleLauncher.run(out, err, args);
-        Reports.process();
+        String testFilter = System.getenv("TESTBRIDGE_TEST_ONLY");
+        Path jar = Path.of(args[0]);
+        Path testReport = Path.of(System.getenv("XML_OUTPUT_FILE"));
+
+        String[] arguments = Arguments.getArguments(testFilter, jar, testReport);
+        CommandResult<?> result = ConsoleLauncher.run(out, err, arguments);
+        Reports.generateReport(testReport);
 
         System.exit(result.getExitCode());
     }

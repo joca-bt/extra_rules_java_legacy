@@ -18,13 +18,12 @@ import org.w3c.dom.NodeList;
 import static javax.xml.transform.OutputKeys.INDENT;
 
 class Reports {
-    public static void process() {
+    public static void generateReport(Path testReport) {
         try {
-            Path file = Path.of(System.getenv("XML_OUTPUT_FILE"));
-            Document document = parseAndMergeReports(file.getParent());
-            writeReport(document, file);
+            Document document = readAndMergeReports(testReport.getParent());
+            writeReport(document, testReport);
         } catch (Exception exception) {
-            String message = "Could not process reports.";
+            String message = "Could not generate report.";
             throw new JUnitException(message, exception);
         }
     }
@@ -32,8 +31,7 @@ class Reports {
     /**
      * Fixes the name of a testcase:
      *   - Appends the display name for parameterized tests.
-     *   - Removes parentheses, as IntelliJ IDEA's navigation will break if the name contains
-     *     parentheses.
+     *   - Removes parentheses, since they break IntelliJ IDEA's navigation.
      */
     private static void fixTestcaseName(Element testcase) {
         String name = testcase.getAttribute("name");
@@ -57,15 +55,16 @@ class Reports {
      */
     private static String getTestcaseDisplayName(Element testcase) {
         Element systemOut = (Element) testcase.getElementsByTagName("system-out").item(0);
-        String[] properties = systemOut.getFirstChild().getNodeValue().trim().split("\n");
+        String[] properties = systemOut.getTextContent().trim().split("\n");
         return properties[1].substring(14);
     }
 
-    private static Document parseAndMergeReports(Path dir) throws Exception {
+    private static Document readAndMergeReports(Path dir) throws Exception {
         List<Path> files;
 
         try (var stream = Files.list(dir)) {
-            files = stream.filter(file -> file.getFileName().toString().matches("^TEST-junit-.+\\.xml$"))
+            files = stream
+                .filter(file -> file.getFileName().toString().matches("^TEST-junit-.+\\.xml$"))
                 .toList();
         }
 
