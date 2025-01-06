@@ -18,10 +18,10 @@ import org.w3c.dom.NodeList;
 import static javax.xml.transform.OutputKeys.INDENT;
 
 class Reports {
-    public static void generateReport(Path testReport) {
+    public static void generateReport(Path report) {
         try {
-            Document document = readAndMergeReports(testReport.getParent());
-            writeReport(document, testReport);
+            Document document = readReports(report.getParent());
+            writeReport(document, report);
         } catch (Exception exception) {
             String message = "Could not generate report.";
             throw new JUnitException(message, exception);
@@ -59,7 +59,7 @@ class Reports {
         return properties[1].substring(14);
     }
 
-    private static Document readAndMergeReports(Path dir) throws Exception {
+    private static Document readReports(Path dir) throws Exception {
         List<Path> files;
 
         try (var stream = Files.list(dir)) {

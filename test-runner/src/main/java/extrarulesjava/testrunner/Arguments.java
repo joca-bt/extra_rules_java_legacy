@@ -10,15 +10,15 @@ import java.util.stream.Collectors;
 import org.junit.platform.commons.JUnitException;
 
 class Arguments {
-    public static String[] getArguments(String testFilter, Path jar, Path testReport) {
+    public static String[] getArguments(Path jar, String filter, Path report) {
         List<String> arguments = new ArrayList<>();
 
         arguments.add("execute");
         arguments.add("--details=none");
         arguments.add("--disable-banner");
         arguments.add("--fail-if-no-tests");
-        arguments.add("--reports-dir=%s".formatted(testReport.getParent()));
-        addSelectors(arguments, testFilter, jar);
+        arguments.add("--reports-dir=%s".formatted(report.getParent()));
+        addSelectors(arguments, jar, filter);
 
         return arguments.toArray(new String[0]);
     }
@@ -29,16 +29,16 @@ class Arguments {
      * The --test_filter option specifies which tests to run. This option is provided to the test
      * runner through the TESTBRIDGE_TEST_ONLY environment variable.
      */
-    private static void addSelectors(List<String> arguments, String testFilter, Path jar) {
-        if (testFilter == null) {
+    private static void addSelectors(List<String> arguments, Path jar, String filter) {
+        if (filter == null) {
             arguments.add("--scan-classpath=%s".formatted(jar));
             return;
         }
 
         // Adjust for IntelliJ IDEA.
-        testFilter = testFilter.replaceAll("[#$](\\||$)", "$1");
+        filter = filter.replaceAll("[#$](\\||$)", "$1");
 
-        for (var component : testFilter.split("\\|(?![^()]+\\))")) {
+        for (var component : filter.split("\\|(?![^()]+\\))")) {
             String[] names = component.split("#");
 
             Class<?> clazz = findClass(names[0]);
