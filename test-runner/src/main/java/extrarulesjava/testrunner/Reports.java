@@ -31,7 +31,7 @@ class Reports {
     /**
      * Fixes the name of a testcase:
      *   - Appends the display name for parameterized tests.
-     *   - Removes parentheses, since they break IntelliJ IDEA's navigation.
+     *   - Removes parameters, since they break IntelliJ IDEA's navigation.
      */
     private static void fixTestcaseName(Element testcase) {
         String name = testcase.getAttribute("name");

@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.junit.platform.commons.JUnitException;
@@ -35,8 +36,8 @@ class Arguments {
             return;
         }
 
-        // Adjust for IntelliJ IDEA.
-        filter = filter.replaceAll("[#$](\\||$)", "$1");
+        // Normalize.
+        filter = filter.replaceAll("\\$(\\||$)", "$1");
 
         for (var component : filter.split("\\|(?![^()]+\\))")) {
             String[] names = component.split("#");
@@ -48,11 +49,27 @@ class Arguments {
                 continue;
             }
 
-            for (var methodName : names[1].replaceAll("^\\(|\\)$", "").split("\\|")) {
-                String methodParameters = Arrays.stream(findMethod(clazz, methodName).getParameterTypes())
+            for (var spec : names[1].split("\\|")) {
+                // Normalize.
+                spec = spec.replaceAll("^\\(|\\)$|\\\\|(?<=]).+", "");
+
+                String[] tokens = spec.split("(?=\\[)");
+
+                Method method = findMethod(clazz, tokens[0]);
+                String parameters = Arrays.stream(method.getParameterTypes())
                     .map(Class::getName)
                     .collect(Collectors.joining(","));
-                arguments.add("--select-method=%s#%s(%s)".formatted(clazz.getName(), methodName, methodParameters));
+
+                if (tokens.length == 1) {
+                    arguments.add("--select-method=%s#%s(%s)".formatted(clazz.getName(), method.getName(), parameters));
+                    continue;
+                }
+
+                String iterations = Pattern.compile("\\d+")
+                    .matcher(tokens[1])
+                    .replaceAll(match -> Integer.toString(Integer.parseInt(match.group()) - 1));
+
+                arguments.add("--select-iteration=method:%s#%s(%s)%s".formatted(clazz.getName(), method.getName(), parameters, iterations));
             }
         }
     }
