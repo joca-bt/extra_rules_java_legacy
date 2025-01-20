@@ -64,7 +64,7 @@ class Reports {
 
         try (var stream = Files.list(dir)) {
             files = stream
-                .filter(file -> file.getFileName().toString().matches("^TEST-junit-.+\\.xml$"))
+                .filter(file -> file.getFileName().toString().matches("TEST-junit-.+\\.xml"))
                 .toList();
         }
 

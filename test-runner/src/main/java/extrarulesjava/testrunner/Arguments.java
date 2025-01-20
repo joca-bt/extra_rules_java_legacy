@@ -37,7 +37,7 @@ class Arguments {
         }
 
         // Normalize.
-        filter = filter.replaceAll("\\$(\\||$)", "$1");
+        filter = filter.replaceAll("[$\\\\]", "");
 
         for (var component : filter.split("\\|(?![^()]+\\))")) {
             String[] names = component.split("#");
@@ -50,23 +50,23 @@ class Arguments {
             }
 
             for (var spec : names[1].split("\\|")) {
-                // Normalize.
-                spec = spec.replaceAll("^\\(|\\)$|\\\\|(?<=]).+", "");
+                // Clean up.
+                spec = spec.replaceAll("^\\(|\\)$|(?<=]).+", "");
 
-                String[] tokens = spec.split("(?=\\[)");
+                String[] elements = spec.split("(?=\\[)");
 
-                Method method = findMethod(clazz, tokens[0]);
+                Method method = findMethod(clazz, elements[0]);
                 String parameters = Arrays.stream(method.getParameterTypes())
                     .map(Class::getName)
                     .collect(Collectors.joining(","));
 
-                if (tokens.length == 1) {
+                if (elements.length == 1) {
                     arguments.add("--select-method=%s#%s(%s)".formatted(clazz.getName(), method.getName(), parameters));
                     continue;
                 }
 
                 String iterations = Pattern.compile("\\d+")
-                    .matcher(tokens[1])
+                    .matcher(elements[1])
                     .replaceAll(match -> Integer.toString(Integer.parseInt(match.group()) - 1));
 
                 arguments.add("--select-iteration=method:%s#%s(%s)%s".formatted(clazz.getName(), method.getName(), parameters, iterations));
@@ -74,30 +74,30 @@ class Arguments {
         }
     }
 
-    private static Class<?> findClass(String className) {
+    private static Class<?> findClass(String name) {
         while (true) {
             try {
-                return Class.forName(className);
+                return Class.forName(name);
             } catch (Exception exception) {
-                int i = className.lastIndexOf('.');
+                int i = name.lastIndexOf('.');
 
                 if (i == -1) {
-                    String message = "Could not find class %s.".formatted(className.replace('$', '.'));
+                    String message = "Could not find class %s.".formatted(name.replace('$', '.'));
                     throw new JUnitException(message);
                 }
 
-                className = "%s$%s".formatted(className.substring(0, i), className.substring(i + 1));
+                name = "%s$%s".formatted(name.substring(0, i), name.substring(i + 1));
             }
         }
     }
 
-    private static Method findMethod(Class<?> clazz, String methodName) {
+    private static Method findMethod(Class<?> clazz, String name) {
         List<Method> methods = Arrays.stream(clazz.getDeclaredMethods())
-            .filter(method -> method.getName().equals(methodName))
+            .filter(method -> method.getName().equals(name))
             .toList();
 
         if (methods.size() != 1) {
-            String message = "Could not find method %s#%s.".formatted(clazz.getName().replace('$', '.'), methodName);
+            String message = "Could not find method %s#%s.".formatted(clazz.getName().replace('$', '.'), name);
             throw new JUnitException(message);
         }
 
